@@ -1,0 +1,4 @@
+Microphone:
+	http://stackoverflow.com/questions/5728454/playing-back-sound-coming-from-microphone-in-real-time
+
+Sound Analysis:
