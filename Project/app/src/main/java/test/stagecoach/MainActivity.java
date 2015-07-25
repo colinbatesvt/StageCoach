@@ -1,9 +1,16 @@
 package test.stagecoach;
 
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Toast;
+
+import java.io.IOException;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -12,6 +19,8 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        fileName = getFilesDir() + "/test.3gp";
     }
 
     @Override
@@ -34,5 +43,49 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    MediaRecorder recorder;
+    String fileName;
+
+    public void start(View v)
+    {
+        recorder = new MediaRecorder();
+        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        recorder.setOutputFile(fileName);
+        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        try {
+            recorder.prepare();
+            recorder.start();
+        }
+
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void stop(View v)
+    {
+        try {
+            recorder.stop();
+            recorder.release();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void play(View v)
+    {
+       MediaPlayer mPlayer = new MediaPlayer();
+
+        try {
+            mPlayer.setDataSource(fileName);
+            mPlayer.prepare();
+            mPlayer.start();
+        } catch (IOException e) {
+            Log.e("poop", "prepare() failed");
+        }
     }
 }
