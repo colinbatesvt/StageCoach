@@ -8,7 +8,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.media.MediaPlayer.OnCompletionListener;
 
 import java.io.IOException;
 
@@ -21,6 +23,9 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         fileName = getFilesDir() + "/test.3gp";
+        crispyButtery = new Toast(this);
+        status = (TextView) findViewById(R.id.textView2);
+        mPlayer = new MediaPlayer();
     }
 
     @Override
@@ -47,6 +52,9 @@ public class MainActivity extends ActionBarActivity {
 
     MediaRecorder recorder;
     String fileName;
+    Toast crispyButtery;
+    TextView status;
+    MediaPlayer mPlayer;
 
     public void start(View v)
     {
@@ -58,9 +66,11 @@ public class MainActivity extends ActionBarActivity {
         try {
             recorder.prepare();
             recorder.start();
+            setStatus("Recording...");
         }
 
         catch (Exception e) {
+            crispyButtery.makeText(this, "Oh jeez couldn't start the recorder", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
     }
@@ -70,22 +80,44 @@ public class MainActivity extends ActionBarActivity {
         try {
             recorder.stop();
             recorder.release();
+            setStatus("");
         }
         catch (Exception e) {
+            crispyButtery.makeText(this, "Oh jeez couldn't stop the recorder or save the file or something", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
     }
 
     public void play(View v)
     {
-       MediaPlayer mPlayer = new MediaPlayer();
-
+        if (!mPlayer.isPlaying())
         try {
+            setStatus("Playing back...");
+            getWindow().getDecorView().findViewById(android.R.id.content).invalidate();
             mPlayer.setDataSource(fileName);
             mPlayer.prepare();
             mPlayer.start();
-        } catch (IOException e) {
+            mPlayer.setOnCompletionListener(new OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer media) {
+                    mPlayer.reset();
+                    setStatus("");
+                }});
+            }
+        catch (IOException e) {
+            crispyButtery.makeText(this, "Can't play recording for some reason. That's freaky yo.", Toast.LENGTH_SHORT).show();
             Log.e("poop", "prepare() failed");
         }
+    }
+
+
+
+    //if you leave str blank, the default setting is "Waiting for you..."
+    private void setStatus(String str)
+    {
+        if (str.equals(""))
+            status.setText("Waiting for you...");
+        else
+            status.setText(str);
     }
 }
