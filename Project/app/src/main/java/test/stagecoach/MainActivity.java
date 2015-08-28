@@ -17,8 +17,16 @@ import java.io.IOException;
 
 public class MainActivity extends ActionBarActivity {
 
+    private MediaRecorder recorder;
+    private String fileName;
+    private Toast crispyButtery;
+    private TextView status;
+    private MediaPlayer mPlayer;
+    private boolean isRecording;
+    private boolean hasRecorded;
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -26,6 +34,20 @@ public class MainActivity extends ActionBarActivity {
         crispyButtery = new Toast(this);
         status = (TextView) findViewById(R.id.textView2);
         mPlayer = new MediaPlayer();
+        isRecording = false;
+        hasRecorded = false;
+
+        recorder = new MediaRecorder();
+        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+        recorder.setOutputFile(fileName);
+        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        try {
+            recorder.prepare();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -50,23 +72,12 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    MediaRecorder recorder;
-    String fileName;
-    Toast crispyButtery;
-    TextView status;
-    MediaPlayer mPlayer;
-
     public void start(View v)
     {
-        recorder = new MediaRecorder();
-        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        recorder.setOutputFile(fileName);
-        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         try {
-            recorder.prepare();
             recorder.start();
             setStatus("Recording...");
+            isRecording = true;
         }
 
         catch (Exception e) {
@@ -75,12 +86,22 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    //when we get around to application exit, release media recorder
     public void stop(View v)
     {
         try {
-            recorder.stop();
-            recorder.release();
-            setStatus("");
+            if (recorder != null) {
+                if (isRecording) {
+                    recorder.stop();
+                    recorder.reset();
+                    recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                    recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                    recorder.setOutputFile(fileName);
+                    recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+                }
+                setStatus("");
+                hasRecorded = true;
+            }
         }
         catch (Exception e) {
             crispyButtery.makeText(this, "Oh jeez couldn't stop the recorder or save the file or something", Toast.LENGTH_SHORT).show();
