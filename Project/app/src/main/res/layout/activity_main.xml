@@ -53,4 +53,26 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
 
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/transcript"
+        android:layout_below="@+id/play"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_above="@+id/textView2"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Do Transcript"
+        android:id="@+id/transcriptButton"
+        android:layout_alignTop="@+id/startButton"
+        android:layout_alignRight="@+id/transcript"
+        android:layout_alignEnd="@+id/transcript"
+        android:layout_marginRight="37dp"
+        android:layout_marginEnd="37dp" />
+
 </RelativeLayout>

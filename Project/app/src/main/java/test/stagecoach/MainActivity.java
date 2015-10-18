@@ -1,18 +1,24 @@
 package test.stagecoach;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.speech.RecognizerIntent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.media.MediaPlayer.OnCompletionListener;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Locale;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -24,11 +30,25 @@ public class MainActivity extends ActionBarActivity {
     private MediaPlayer mPlayer;
     private boolean isRecording;
     private boolean hasRecorded;
+    private TextView txtSpeechInput;
+    private Button transcriptButton;
+    private final int REQ_CODE_SPEECH_INPUT = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        txtSpeechInput = (TextView) findViewById(R.id.transcript);
+        transcriptButton = (Button) findViewById(R.id.transcriptButton);
+
+        transcriptButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                promptSpeechInput();
+            }
+        });
 
         fileName = getFilesDir() + "/test.3gp";
         crispyButtery = new Toast(this);
@@ -109,29 +129,26 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    public void play(View v)
-    {
+    public void play(View v) {
         if (!mPlayer.isPlaying())
-        try {
-            setStatus("Playing back...");
-            getWindow().getDecorView().findViewById(android.R.id.content).invalidate();
-            mPlayer.setDataSource(fileName);
-            mPlayer.prepare();
-            mPlayer.start();
-            mPlayer.setOnCompletionListener(new OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer media) {
-                    mPlayer.reset();
-                    setStatus("");
-                }});
+            try {
+                setStatus("Playing back...");
+                getWindow().getDecorView().findViewById(android.R.id.content).invalidate();
+                mPlayer.setDataSource(fileName);
+                mPlayer.prepare();
+                mPlayer.start();
+                mPlayer.setOnCompletionListener(new OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer media) {
+                        mPlayer.reset();
+                        setStatus("");
+                    }
+                });
+            } catch (IOException e) {
+                crispyButtery.makeText(this, "Can't play recording for some reason. That's freaky yo.", Toast.LENGTH_SHORT).show();
+                Log.e("poop", "prepare() failed");
             }
-        catch (IOException e) {
-            crispyButtery.makeText(this, "Can't play recording for some reason. That's freaky yo.", Toast.LENGTH_SHORT).show();
-            Log.e("poop", "prepare() failed");
-        }
     }
-
-
 
     //if you leave str blank, the default setting is "Waiting for you..."
     private void setStatus(String str)
@@ -140,5 +157,45 @@ public class MainActivity extends ActionBarActivity {
             status.setText("Waiting for you...");
         else
             status.setText(str);
+    }
+
+    /**
+     * Showing google speech input dialog
+     * */
+    private void promptSpeechInput() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
+                getString(R.string.speech_prompt));
+        try {
+            startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
+        } catch (ActivityNotFoundException a) {
+            Toast.makeText(getApplicationContext(),
+                    getString(R.string.speech_not_supported),
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Receiving speech input
+     * */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+            case REQ_CODE_SPEECH_INPUT: {
+                if (resultCode == RESULT_OK && null != data) {
+
+                    ArrayList<String> result = data
+                            .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    txtSpeechInput.setText(result.get(0));
+                }
+                break;
+            }
+
+        }
     }
 }
